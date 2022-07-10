@@ -56,7 +56,10 @@ function Receipt() {
     });
 
     try {
-      const response = await axios.post("/api/receipt/create", receipt);
+      const response = await axios.post(
+        "https://mtm-procure-api.herokuapp.com/api/receipt/create",
+        receipt
+      );
 
       console.log(response.data, "response");
       toast()

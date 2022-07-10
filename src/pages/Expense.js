@@ -67,7 +67,10 @@ function Expense() {
       success: false,
     });
     try {
-      const response = await axios.post("/api/expense/create", modalExpense);
+      const response = await axios.post(
+        "https://mtm-procure-api.herokuapp.com/api/expense/create",
+        modalExpense
+      );
 
       setModalExpense({
         ...modalExpense,

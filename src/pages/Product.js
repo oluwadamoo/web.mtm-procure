@@ -24,11 +24,9 @@ function Product() {
   const getCategories = async () => {
     const response = await category();
 
-    console.log(response, "response...");
     setProducts(response);
   };
 
-  console.log(products, "products....");
   useEffect(() => {
     getCategories();
   }, []);
