@@ -26,12 +26,14 @@ import {
 import { APP_TITLE } from "../utils/title";
 import { receipts } from "../assets/data/receipts";
 import { expense } from "../assets/data/expenses";
+import { category } from "../assets/data/products";
 
 function Dashboard() {
   const [page, setPage] = useState(1);
   const [data, setData] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalExpense, setTotalExpense] = useState(0);
+  const [totalProduct, setTotalProduct] = useState(0);
   const [itemSold, setItemSold] = useState(0);
   const [receipt, setReceipt] = useState([]);
 
@@ -48,6 +50,17 @@ function Dashboard() {
     setTotalExpense(totalExpense);
   };
 
+  const getProducts = async () => {
+    let totalProduct = 0;
+    const response = await category();
+
+    for (const i in response) {
+      totalProduct += parseFloat(response[i].quantity);
+    }
+
+    setTotalProduct(totalProduct);
+  };
+
   useEffect(() => {
     document.title = APP_TITLE + " 📊 Dashboard";
 
@@ -58,6 +71,7 @@ function Dashboard() {
 
     getReceipts();
     getExpenses();
+    getProducts();
   }, []);
 
   useEffect(() => {
@@ -127,7 +141,7 @@ function Dashboard() {
           />
         </InfoCard>
 
-        <InfoCard title="Profit" value="N5,000,000">
+        <InfoCard title="Profit" value="N0">
           <RoundIcon
             icon={ProfitIcon}
             iconColorClass="text-blue-500 dark:text-blue-100"
@@ -136,7 +150,7 @@ function Dashboard() {
           />
         </InfoCard>
 
-        <InfoCard title="All products" value="0">
+        <InfoCard title="All products" value={totalProduct}>
           <RoundIcon
             icon={CartIcon}
             iconColorClass="text-teal-500 dark:text-teal-100"
@@ -152,7 +166,7 @@ function Dashboard() {
             className="mr-4"
           />
         </InfoCard>
-        <InfoCard title="No of products left" value="0">
+        <InfoCard title="No of products left" value={totalProduct - itemSold}>
           <RoundIcon
             icon={ProductLeftIcon}
             iconColorClass="text-teal-500 dark:text-teal-100"
@@ -189,7 +203,12 @@ function Dashboard() {
                     <div>
                       <p className="font-semibold">{user.name}</p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {user.categories.toString()}
+                        {user.categories.map((cat, i) => (
+                          <span key={i}>
+                            {cat.category}
+                            {user.categories[i + 1] && <span>, </span>}
+                          </span>
+                        ))}
                       </p>
                     </div>
                   </div>

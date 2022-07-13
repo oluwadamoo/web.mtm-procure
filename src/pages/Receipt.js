@@ -6,6 +6,7 @@ import { Input, Label } from "@windmill/react-ui";
 import response from "../utils/demo/catData";
 import Multiselect from "multiselect-react-dropdown";
 import { Button } from "@windmill/react-ui";
+import { category } from "../assets/data/products";
 
 import "./styles.css";
 import { APP_TITLE } from "../utils/title";
@@ -14,7 +15,13 @@ import axios from "axios";
 
 function Receipt() {
   const [categories, setCategories] = useState([]);
+  const [checkedState, setCheckedState] = useState(
+    new Array(categories.length).fill(false)
+  );
 
+  const [quantities, setQuantities] = useState(
+    new Array(categories.length).fill(0)
+  );
   const [receipt, setReceipt] = useState({
     name: "",
     quantity: "",
@@ -28,14 +35,24 @@ function Receipt() {
     success: false,
   });
 
-  useEffect(() => {
+  const getCategories = async () => {
+    const response = await category();
+
     setCategories(response);
+
+    setCheckedState(new Array(response.length).fill(false));
+    setQuantities(new Array(response.length).fill(0));
+  };
+
+  useEffect(() => {
+    getCategories();
   }, []);
 
   useEffect(() => {
     document.title = APP_TITLE + " . Receipt";
   }, []);
 
+  // console.log(checkedState, "checkedState...");
   const onSelect = (selectedList, selectedItem) => {
     setReceipt({ ...receipt, categories: selectedList });
   };
@@ -55,13 +72,13 @@ function Receipt() {
       success: false,
     });
 
+    console.log(receipt, "the receipt....");
     try {
       const response = await axios.post(
         "https://mtm-procure-api.herokuapp.com/api/receipt/create",
         receipt
       );
 
-      console.log(response.data, "response");
       toast()
         .success("Receipt created!!", "")
         .with({
@@ -106,6 +123,45 @@ function Receipt() {
     }
   };
 
+  const handleOnChange = (position) => {
+    const updatedCheckedState = checkedState.map((item, index) =>
+      index === position ? !item : item
+    );
+
+    setCheckedState(updatedCheckedState);
+  };
+  const handleQuantityChange = (position, e) => {
+    const updatedQuantity = quantities.map(
+      (item, index) => (index === position ? e.target.value : item)
+      // :quantities[position]
+    );
+
+    console.log(updatedQuantity, "qunatity...");
+    setQuantities(updatedQuantity);
+  };
+
+  function getValues() {
+    // console.log(quantities)
+    // console.log(checkedState)
+    let values = [];
+    let quantity = 0;
+    for (const i in categories) {
+      if (checkedState[i]) {
+        values.push({ category: categories[i].title, quantity: quantities[i] });
+      }
+    }
+
+    for (const i in values) {
+      quantity += parseInt(values[i].quantity);
+    }
+    setReceipt({ ...receipt, categories: values, quantity: quantity });
+
+    // console.log(values, "the values");
+  }
+
+  useEffect(() => {
+    getValues();
+  }, [quantities]);
   return (
     <>
       <PageTitle>Receipts</PageTitle>
@@ -122,7 +178,7 @@ function Receipt() {
           />
         </Label>
 
-        <Label className="mt-4">
+        {/* <Label className="mt-4">
           <span>Quantity</span>
           <Input
             className="mt-1"
@@ -131,17 +187,48 @@ function Receipt() {
             value={receipt.quantity}
             onChange={handleChange("quantity")}
           />
-        </Label>
+        </Label> */}
 
         <Label className="mt-4">
-          <span>Category</span>
-          <Multiselect
+          <span>Category</span> <br />
+          <div>
+            {categories.map((category, i) => (
+              <span key={i} className="mr-4">
+                <Input
+                  type="checkbox"
+                  value={category.title}
+                  name="accountType"
+                  checked={checkedState[i]}
+                  onChange={() => handleOnChange(i)}
+                />
+                <span className="ml-1">{category.title}</span>
+
+                {/* {checkedState} */}
+                {checkedState[i] && (
+                  <input
+                    value={quantities[i]}
+                    onChange={(e) => handleQuantityChange(i, e)}
+                    placeholder="quantity"
+                    className="border rounded ml-4 w-1/12 py-1 px-3 mb-3 focus:outline-none"
+                  />
+                )}
+                {/* <Input
+                  className="mt-1"
+                  placeholder="Quantity"
+                  type="number"
+                  // value={receipt.quantity}
+                  // onChange={handleChange("quantity")}
+                /> */}
+              </span>
+            ))}
+          </div>
+          {/* <Multiselect
             options={categories}
             selectedValues={receipt.categories}
             onSelect={onSelect}
             onRemove={onRemove}
             displayValue="label"
-          />
+          /> */}
         </Label>
 
         <Label className="mt-4">
